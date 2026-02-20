@@ -10,7 +10,7 @@ from flask import Blueprint, jsonify, request, send_from_directory
 from app.config import settings
 from app.core.cache import TTLCache
 from app.core.utils import get_valid_date
-from app.integrations.chatguru_client import ChatGuruClient, ChatGuruError
+from app.integrations.chatguru_client import ChatGuruClient
 from app.integrations.gupshup_client import GupshupClient
 from app.services.consultas_service import ConsultasService
 
@@ -132,16 +132,9 @@ def chatguru_leads():
     if cached is not None:
         return jsonify(cached), 200
 
-    cookie_header = request.headers.get("cookie")
-
-    try:
-        data = {"status": "success", "data": ChatGuruClient(cookie=cookie_header).unresolved_leads()}
-        cache.set(key, data)
-        return jsonify(data), 200
-    except ChatGuruError as exc:
-        return jsonify({"status": "error", "message": str(exc)}), 502
-    except Exception as exc:
-        return jsonify({"status": "error", "message": f"Erro inesperado em chatguru/leads: {exc}"}), 500
+    data = {"status": "success", "data": ChatGuruClient().unresolved_leads()}
+    cache.set(key, data)
+    return jsonify(data), 200
 
 
 @bp.route("/hoje", methods=["GET"])
